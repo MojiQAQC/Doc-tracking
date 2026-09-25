@@ -1,0 +1,1079 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>QA/QC เปรียบเทียบโครงการ</title>
+<style>
+:root{
+  --bg:#eef1f6;
+  --paper:#ffffff;
+  --ink:#1c2636;
+  --ink-dim:#6b7688;
+  --line:#e6e9ef;
+
+  --base:#2f6fce;   --base-soft:#e8f0fd;
+  --ctrl:#12a4a0;   --ctrl-soft:#e2f8f6;
+  --corr:#ee8a1f;   --corr-soft:#fdedd9;
+  --chg:#26a65b;    --chg-soft:#e3f8ea;
+  --comp:#8b5cf6;   --comp-soft:#f0e9fd;
+
+  --good:#16a34a;
+  --warn:#ca8a04;
+  --bad:#dc2626;
+  --owner:#8b5cf6;
+  --eps:#12a4a0;
+
+  --headerbg:#152444;
+  --shadow: 0 1px 2px rgba(20,30,45,.04), 0 6px 16px rgba(20,30,45,.05);
+
+  /* หน้าเทรนด์: categorical palette 8 สี ลำดับคงที่ ผูกกับโครงการ A-H ตายตัว ไม่สลับตามอันดับ */
+  --trend-1:#2a78d6; --trend-2:#eb6834; --trend-3:#1baf7a; --trend-4:#eda100;
+  --trend-5:#e87ba4; --trend-6:#008300; --trend-7:#4a3aa7; --trend-8:#e34948;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1218; --paper:#1a2028; --ink:#e9edf3; --ink-dim:#95a1b3; --line:#2b323d;
+    --base-soft:#182a45; --ctrl-soft:#0f2f2d; --corr-soft:#3a2712; --chg-soft:#14301f; --comp-soft:#2a1f45;
+    --headerbg:#0c1526;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 16px rgba(0,0,0,.25);
+    --trend-1:#3987e5; --trend-2:#d95926; --trend-3:#199e70; --trend-4:#c98500;
+    --trend-5:#d55181; --trend-6:#008300; --trend-7:#9085e9; --trend-8:#e66767;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1218; --paper:#1a2028; --ink:#e9edf3; --ink-dim:#95a1b3; --line:#2b323d;
+  --base-soft:#182a45; --ctrl-soft:#0f2f2d; --corr-soft:#3a2712; --chg-soft:#14301f; --comp-soft:#2a1f45;
+  --headerbg:#0c1526;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 16px rgba(0,0,0,.25);
+  --trend-1:#3987e5; --trend-2:#d95926; --trend-3:#199e70; --trend-4:#c98500;
+  --trend-5:#d55181; --trend-6:#008300; --trend-7:#9085e9; --trend-8:#e66767;
+}
+
+*{box-sizing:border-box;}
+html,body{background:var(--bg); height:100%;}
+body{
+  margin:0; color:var(--ink);
+  font-family:"IBM Plex Sans Thai","Noto Sans Thai","IBM Plex Sans",system-ui,sans-serif;
+  font-variant-numeric: tabular-nums;
+  padding:22px 24px;
+}
+h1,h2,h3{font-family:"Sarabun","IBM Plex Sans Thai",sans-serif; margin:0;}
+
+.wrap{max-width:1360px; margin:0 auto; display:flex; flex-direction:column; gap:14px;}
+
+/* ===== header ===== */
+.topbar{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:space-between;
+  background:var(--headerbg); border-radius:12px; box-shadow:var(--shadow);
+  padding:14px 20px; color:#fff;
+}
+.topbar-left{display:flex; align-items:center; gap:12px;}
+.mark{ width:34px;height:34px;flex:none; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16); border-radius:9px;
+  display:flex;align-items:center;justify-content:center; font-family:"Sarabun",sans-serif; font-weight:700; font-size:12px; letter-spacing:.02em; color:#fff;}
+.titleblock{display:flex;flex-direction:column;gap:1px;}
+.titleblock h1{font-size:16px; font-weight:600; color:#fff;}
+.titleblock p{margin:0;color:rgba(255,255,255,.6);font-size:11px;}
+
+.kpi-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.kpi{display:flex; align-items:center; gap:7px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:9px; padding:6px 10px 6px 7px;
+  cursor:pointer; transition:background .12s ease, border-color .12s ease;}
+.kpi:hover{background:rgba(255,255,255,.1);}
+.kpi.is-active{background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.35);}
+.kpi .kpi-ico{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#fff;flex:none;}
+.kpi .kpi-ico.k-base{background:var(--base);}
+.kpi .kpi-ico.k-ctrl{background:var(--ctrl);}
+.kpi .kpi-ico.k-corr{background:var(--corr);}
+.kpi .kpi-ico.k-chg{background:var(--chg);}
+.kpi .kpi-ico.k-comp{background:var(--comp);}
+.kpi .kpi-ico.k-sum{background:rgba(255,255,255,.2);}
+.kpi .kpi-tx{display:flex; flex-direction:column; line-height:1.15;}
+.kpi .kpi-tx b{font-size:14px; font-weight:800; color:#fff;}
+.kpi .kpi-tx span{font-size:8.5px; color:rgba(255,255,255,.58); text-transform:uppercase; letter-spacing:.03em; font-weight:600;}
+.kpi .kpi-chev{color:rgba(255,255,255,.5); display:flex; transition:transform .15s ease; flex:none;}
+.kpi.is-active .kpi-chev{transform:rotate(180deg); color:#fff;}
+@media (max-width:900px){ .kpi-row{display:none;} }
+
+.kpi-detail{ background:var(--paper); border-radius:12px; border:1px solid var(--line); box-shadow:var(--shadow);
+  padding:0; max-height:0; opacity:0; overflow:hidden; transition:max-height .18s ease, opacity .18s ease, padding .18s ease;}
+.kpi-detail.open{padding:12px 18px 14px; max-height:220px; opacity:1;}
+.kpi-detail-hd{font-size:10.5px; font-weight:700; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;}
+.kpi-detail-grid{display:flex; flex-wrap:wrap; gap:8px;}
+.kpi-detail-item{display:flex; flex-direction:column; align-items:center; gap:1px; min-width:64px; padding:7px 10px 6px; border-radius:9px; background:var(--bg); border:1px solid var(--line);}
+.kpi-detail-item b{font-size:15px; font-weight:800; color:var(--ink); line-height:1.1;}
+.kpi-detail-item span{font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-dim);}
+
+/* ===== main ===== */
+.main{display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:14px; align-items:start;}
+
+.panel{ background:var(--paper); border-radius:12px; border:1px solid var(--line); box-shadow:var(--shadow); overflow:hidden;}
+
+.toolbar{display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid var(--line);}
+.toolbar #searchInput{ flex:1; min-width:180px; max-width:280px; padding:7px 11px; border:1px solid var(--line); border-radius:8px;
+  background:var(--bg); color:var(--ink); font-family:inherit; font-size:12.5px; outline:none;}
+.toolbar #searchInput:focus{border-color:var(--base);}
+.toolbar .tb-sort{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-dim); white-space:nowrap;}
+.toolbar .tb-sort select{padding:6px 9px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); font-family:inherit; font-size:12px; outline:none; cursor:pointer;}
+.toolbar .tb-count{margin-left:auto; font-size:11px; color:var(--ink-dim); white-space:nowrap;}
+
+table{border-collapse:collapse; width:100%; table-layout:fixed; font-size:14px;}
+colgroup col.c-proj{width:11%;} colgroup col.c-num{width:4.8%;} colgroup col.c-wide{width:7%;}
+
+/* แถวหัวกลุ่มบนสุด (Baseline/Control/Corrective/Change/Complete) — เพิ่มเหนือแถวชื่อคอลัมน์ย่อย สีพื้นเดียวกับกลุ่ม */
+thead tr.grp th{ padding:6px 5px 4px; font-size:10px; font-weight:700; color:#fff; text-align:center;
+  letter-spacing:.03em; border-bottom:1px solid rgba(255,255,255,.18); white-space:nowrap;}
+thead tr.grp th.grp-proj{background:transparent;}
+thead tr.grp th.grp-base{background:var(--base);}
+thead tr.grp th.grp-ctrl{background:var(--ctrl);}
+thead tr.grp th.grp-corr{background:var(--corr);}
+thead tr.grp th.grp-chg{background:var(--chg);}
+thead tr.grp th.grp-comp{background:var(--comp);}
+thead tr.grp th.grp-more{background:var(--ink-dim);}
+
+thead tr.sub th{ background:var(--paper); font-weight:700; font-size:11px; color:var(--ink-dim);
+  padding:13px 5px 10px; text-align:center; border-bottom:1px solid var(--line); white-space:normal; line-height:1.3;
+  text-transform:uppercase; letter-spacing:.02em; word-break:break-word;}
+thead tr.sub th.proj-h{text-align:left; padding-left:16px; text-transform:none; letter-spacing:0;}
+thead tr.sub th .th-flow{display:block; font-size:8.5px; font-weight:500; color:var(--ink-dim); text-transform:none; letter-spacing:0; margin-top:1px; white-space:nowrap;}
+
+/* หัวคอลัมน์เรื่องเดียวกัน = สีพื้นเดียวกัน ตัวหนังสือขาว (Drawing น้ำเงิน, Control เขียวอมฟ้า, Corrective ส้ม, Change เขียว, Complete ม่วง) */
+thead tr.sub th.th-base, thead tr.sub th.th-ctrl, thead tr.sub th.th-corr,
+thead tr.sub th.th-chg, thead tr.sub th.th-comp, thead tr.sub th.th-more{ color:#fff; border-bottom:none;}
+thead tr.sub th.th-base .th-flow, thead tr.sub th.th-ctrl .th-flow, thead tr.sub th.th-corr .th-flow,
+thead tr.sub th.th-chg .th-flow, thead tr.sub th.th-comp .th-flow, thead tr.sub th.th-more .th-flow{ color:rgba(255,255,255,.75);}
+thead tr.sub th.th-base{background:var(--base);}
+thead tr.sub th.th-ctrl{background:var(--ctrl);}
+thead tr.sub th.th-corr{background:var(--corr);}
+thead tr.sub th.th-chg{background:var(--chg);}
+thead tr.sub th.th-comp{background:var(--comp);}
+thead tr.sub th.th-more{background:var(--ink-dim);}
+
+tbody td{padding:12px 6px; text-align:center; border-bottom:1px solid var(--line); font-size:14px; color:var(--ink);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:var(--base-soft);}
+td.projcell{text-align:left; padding-left:16px; font-weight:700; font-size:14.5px;}
+td.projcell .sitecode{display:block; font-weight:500; font-size:11.5px; color:var(--ink-dim); margin-top:2px;}
+
+.statuspill{display:inline-block; margin-left:7px; padding:2.5px 9px; border-radius:999px; font-size:10.5px; font-weight:700; vertical-align:2px; white-space:nowrap;}
+.trendtag{display:inline-flex; align-items:center; gap:2px; margin-left:6px; font-size:10.5px; font-weight:700; vertical-align:2px; white-space:nowrap;}
+.trendtag.up{color:#b91c1c;} .trendtag.down{color:#15803d;} .trendtag.flat{color:var(--ink-dim);}
+:root[data-theme="dark"] .trendtag.up{color:#f87171;} :root[data-theme="dark"] .trendtag.down{color:#4ade80;}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .trendtag.up{color:#f87171;}
+  :root:not([data-theme="light"]) .trendtag.down{color:#4ade80;}
+}
+.pill-good{background:rgba(22,163,74,.12); color:#15803d;}
+.pill-warn{background:rgba(202,138,4,.15); color:#92620b;}
+.pill-bad{background:rgba(220,38,38,.14); color:#b91c1c;}
+:root[data-theme="dark"] .pill-good{color:#4ade80;}
+:root[data-theme="dark"] .pill-warn{color:#facc15;}
+:root[data-theme="dark"] .pill-bad{color:#f87171;}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .pill-good{color:#4ade80;}
+  :root:not([data-theme="light"]) .pill-warn{color:#facc15;}
+  :root:not([data-theme="light"]) .pill-bad{color:#f87171;}
+}
+
+.bar-mini{position:relative; width:44px; height:5px; border-radius:3px; background:var(--line); overflow:hidden; display:inline-block; vertical-align:middle; margin-right:5px;}
+.bar-mini i{position:absolute; inset:0; border-radius:3px; background:var(--ink-dim);}
+.pct{font-weight:700; color:var(--ink); font-size:14.5px;}
+
+/* ปุ่มขยายรายละเอียด — ใช้ร่วมกันทั้ง Drawing และ คงค้าง */
+.expand-btn{ display:inline-flex; align-items:center; justify-content:center; flex:none;
+  width:19px; height:19px; padding:0; border-radius:6px; border:1px solid var(--line);
+  background:var(--paper); color:var(--ink-dim); cursor:pointer;
+  transition:background .12s ease, color .12s ease, border-color .12s ease;}
+.expand-btn:hover{background:var(--base-soft); color:var(--base); border-color:var(--base);}
+.expand-btn svg{display:block; transition:transform .15s ease;}
+.expand-btn.is-open{background:var(--base-soft); color:var(--base); border-color:var(--base);}
+.expand-btn.is-open svg{transform:rotate(180deg);}
+
+.pending-chip{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  min-width:58px; padding:7px 10px 6px; border-radius:9px;
+  background:var(--paper); border:1px solid var(--line);}
+.pending-chip .pc-val{font-size:16px; font-weight:800; line-height:1.1; color:var(--ink-dim);}
+.pending-chip .pc-lbl{font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-dim);}
+.pending-chip.pending-none{opacity:.55;}
+.pending-chip.pending-low{background:rgba(22,163,74,.08); border-color:rgba(22,163,74,.28);}
+.pending-chip.pending-low .pc-val{color:#15803d;}
+.pending-chip.pending-mid{background:rgba(202,138,4,.1); border-color:rgba(202,138,4,.32);}
+.pending-chip.pending-mid .pc-val{color:#92620b;}
+.pending-chip.pending-high{background:rgba(220,38,38,.1); border-color:rgba(220,38,38,.34);}
+.pending-chip.pending-high .pc-val{color:#b91c1c;}
+:root[data-theme="dark"] .pending-chip.pending-low .pc-val{color:#4ade80;}
+:root[data-theme="dark"] .pending-chip.pending-mid .pc-val{color:#facc15;}
+:root[data-theme="dark"] .pending-chip.pending-high .pc-val{color:#f87171;}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .pending-chip.pending-low .pc-val{color:#4ade80;}
+  :root:not([data-theme="light"]) .pending-chip.pending-mid .pc-val{color:#facc15;}
+  :root:not([data-theme="light"]) .pending-chip.pending-high .pc-val{color:#f87171;}
+}
+
+.bar-mini.actual{margin-right:0; width:100%;}
+.bar-mini.actual i{background:var(--ink-dim);}
+.bar-mini.actual.draw-good i{background:var(--good);}
+.bar-mini.actual.draw-warn i{background:var(--warn);}
+.bar-mini.actual.draw-bad i{background:var(--bad);}
+.bar-mini.plan{margin-right:0; width:100%; margin-top:1px;}
+.bar-mini.plan i{background:var(--ink-dim); opacity:.55;}
+
+.st-good{color:var(--ink-dim); font-weight:400;}
+.st-warn{color:var(--warn); font-weight:700;}
+.st-bad{color:var(--bad); font-weight:700;}
+
+.cellchip{display:flex; flex-direction:column; align-items:center; gap:3px;}
+.cellchip.inline{flex-direction:row; gap:6px;}
+.chip{display:inline-flex; align-items:center; justify-content:center; min-width:27px; height:23px; padding:0 8px; border-radius:999px; font-size:14px; font-weight:700; line-height:1;}
+/* ตัวเลขปกติ = ตัวหนังสือดำล้วน ไม่มีพื้นหลัง — มีสี/พื้นหลังเฉพาะตัวที่กระพริบ (.chip-blink = "มีปัญหา" ต้องรีบดู) เท่านั้น */
+.chip-none, .chip-low, .chip-mid, .chip-high{background:none; color:var(--ink); font-weight:800;}
+.chip-high.chip-blink{background:rgba(220,38,38,.16); color:#b91c1c;}
+.chip.draw-chip-good{background:rgba(22,163,74,.14); color:#15803d;}
+.chip.draw-chip-warn{background:rgba(202,138,4,.18); color:#92620b;}
+.chip.draw-chip-bad{background:rgba(220,38,38,.16); color:#b91c1c;}
+:root[data-theme="dark"] .chip.draw-chip-good{color:#4ade80;}
+:root[data-theme="dark"] .chip.draw-chip-warn{color:#facc15;}
+:root[data-theme="dark"] .chip.draw-chip-bad{color:#f87171;}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .chip.draw-chip-good{color:#4ade80;}
+  :root:not([data-theme="light"]) .chip.draw-chip-warn{color:#facc15;}
+  :root:not([data-theme="light"]) .chip.draw-chip-bad{color:#f87171;}
+}
+.chipsub{font-size:11px; color:var(--ink-dim); font-weight:500;}
+
+/* ก้อนตัวเลขเดียว + ปุ่มขยาย — ใช้ร่วมกันทุกคอลัมน์ RFI/NCR/CAR/FCR/DCR/VO/Punchlist/เกินกำหนด */
+.mchip{display:inline-flex; align-items:center; justify-content:center; gap:5px;}
+.mchip .expand-btn{width:17px; height:17px;}
+.mchip .expand-btn svg{width:8px; height:8px;}
+@keyframes pulseBad{ 0%,100%{ box-shadow:0 0 0 0 rgba(220,38,38,.5);} 50%{ box-shadow:0 0 0 5px rgba(220,38,38,0);} }
+.chip-blink{ animation: pulseBad 1.3s ease-in-out infinite; }
+:root[data-theme="dark"] .chip-none, :root[data-theme="dark"] .chip-low, :root[data-theme="dark"] .chip-mid, :root[data-theme="dark"] .chip-high{color:var(--ink);}
+:root[data-theme="dark"] .chip-high.chip-blink{color:#f87171;}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .chip-none, :root:not([data-theme="light"]) .chip-low, :root:not([data-theme="light"]) .chip-mid, :root:not([data-theme="light"]) .chip-high{color:var(--ink);}
+  :root:not([data-theme="light"]) .chip-high.chip-blink{color:#f87171;}
+}
+
+.abc{color:var(--ink-dim);}
+.abc b.a{color:#c0245a; font-weight:600;} .abc b.b{color:var(--bad); font-weight:600;}
+
+.foot-note{padding:9px 16px 11px; font-size:10px; color:var(--ink-dim); border-top:1px solid var(--line); line-height:1.5;}
+
+/* right progress panel */
+.side-stack{display:flex; flex-direction:column; gap:14px;}
+.side{display:flex; flex-direction:column; gap:10px;}
+.side .phead{padding:11px 14px; border-bottom:1px solid var(--line); font-size:11.5px; font-weight:600; font-family:"Sarabun",sans-serif; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.04em;}
+.proglist{padding:12px 14px; display:flex; flex-direction:column; gap:6px;}
+.progrow{display:flex; flex-direction:column; gap:4px; padding:6px 6px; border-radius:8px;}
+.progrow-top{display:flex; align-items:baseline; gap:6px;}
+.progrow .nm{flex:1; font-size:11.5px; font-weight:700; font-family:"Sarabun",sans-serif; color:var(--ink); display:flex; align-items:center; gap:4px;}
+.progrow .pv{flex:none; text-align:right; font-size:12.5px; font-weight:800; color:var(--ink);}
+.progrow .pv.draw-good{color:var(--good);}
+.progrow .pv.draw-warn{color:var(--warn);}
+.progrow .pv.draw-bad{color:var(--bad);}
+.progrow .planof{flex:none; font-size:10.5px; color:var(--ink-dim); font-weight:600;}
+.progrow .delta{flex:none; font-size:9.5px; font-weight:600; padding:1px 5px; border-radius:999px; white-space:nowrap;}
+.delta.behind{background:rgba(220,38,38,.14); color:#b91c1c;}
+.delta.mid{background:rgba(202,138,4,.15); color:#92620b;}
+.delta.ahead{background:rgba(22,163,74,.12); color:#15803d;}
+:root[data-theme="dark"] .delta.behind{color:#f87171;}
+:root[data-theme="dark"] .delta.mid{color:#facc15;}
+:root[data-theme="dark"] .delta.ahead{color:#4ade80;}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .delta.behind{color:#f87171;}
+  :root:not([data-theme="light"]) .delta.mid{color:#facc15;}
+  :root:not([data-theme="light"]) .delta.ahead{color:#4ade80;}
+}
+.progtrack{position:relative; height:6px; border-radius:3px; background:var(--line);}
+.progfill{position:absolute; top:0; left:0; height:100%; border-radius:3px;}
+.progfill.plan{background:var(--ink-dim); opacity:.5;}
+.plan-marker{position:absolute; top:-2px; bottom:-2px; width:2px; background:var(--ink); opacity:.55; border-radius:1px;}
+
+/* Drawing / คงค้าง detail row — ขยายใต้แถวโครงการในตารางหลัก ผ่านปุ่ม .expand-btn */
+tr.detail-row td{background:var(--base-soft); padding:10px 16px !important; text-align:left !important; border-bottom:1px solid var(--line);}
+.disc-wrap{display:flex; gap:22px; align-items:flex-start; flex-wrap:wrap;}
+.disc-wrap.pending-wrap{gap:10px; align-items:center;}
+.disc-wrap-lbl{font-size:10px; font-weight:700; text-transform:uppercase; color:var(--ink-dim); letter-spacing:.04em; align-self:center; white-space:nowrap;}
+.rate-note{flex-basis:100%; font-size:10px; color:var(--ink-dim); line-height:1.4;}
+.disc-row{display:flex; flex-direction:column; gap:3px; min-width:150px;}
+.disc-row-top{display:flex; align-items:baseline; gap:6px;}
+.disc-row .dnm{flex:1; font-size:10px; font-weight:700; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.03em;}
+.disc-row .dv{flex:none; font-size:12px; font-weight:800;}
+.disc-row .dv.draw-good{color:var(--good);}
+.disc-row .dv.draw-warn{color:var(--warn);}
+.disc-row .dv.draw-bad{color:var(--bad);}
+.disc-row .dof{flex:none; font-size:9.5px; color:var(--ink-dim); font-weight:600;}
+.disc-row .bar-mini{width:100%; height:4px;}
+
+.legendbar{ background:var(--paper); border-radius:12px; border:1px solid var(--line); box-shadow:var(--shadow); padding:14px 18px;
+  display:grid; grid-template-columns:repeat(5,1fr); gap:10px;}
+.legendbar .li{display:flex; gap:8px; align-items:flex-start;}
+.legendbar .li .ico{width:20px;height:20px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;font-family:"Sarabun",sans-serif;border:none;}
+.legendbar .li1 .ico{background:var(--base);}
+.legendbar .li2 .ico{background:var(--ctrl);}
+.legendbar .li3 .ico{background:var(--corr);}
+.legendbar .li4 .ico{background:var(--chg);}
+.legendbar .li5 .ico{background:var(--comp);}
+.legendbar .li .tx b{display:block; font-size:11.5px; font-weight:600; color:var(--ink);}
+.legendbar .li .tx span{font-size:10px; color:var(--ink-dim); line-height:1.4; display:block; margin-top:1px;}
+
+@media (max-width:1050px){
+  .main{grid-template-columns:1fr;}
+  .legendbar{grid-template-columns:repeat(2,1fr);}
+  table{table-layout:auto;}
+  .panel .tablewrap{overflow-x:auto;}
+  table{min-width:1000px;}
+}
+
+/* ===== Tabs: ตาราง / เทรนด์ ===== */
+.viewtabs{display:flex; gap:6px;}
+.viewtab{ appearance:none; border:1px solid var(--line); background:var(--paper); color:var(--ink-dim);
+  font-family:inherit; font-size:12.5px; font-weight:700; padding:8px 16px; border-radius:9px; cursor:pointer; transition:background .12s ease, color .12s ease;}
+.viewtab:hover{background:var(--base-soft);}
+.viewtab.is-active{background:var(--headerbg); color:#fff; border-color:var(--headerbg);}
+
+/* ===== Trend view ===== */
+.trend-panel{padding:18px 20px 20px;}
+.trend-head{display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:14px;}
+.trend-title{font-size:14.5px; font-weight:700; color:var(--ink);}
+.trend-title span{display:block; font-weight:400; font-size:11px; color:var(--ink-dim); margin-top:2px;}
+.trend-filters{display:flex; gap:6px;}
+
+/* ===== Excel-style AutoFilter dropdown ===== */
+.xlfilter{position:relative;}
+.xlfilter-btn{appearance:none; display:inline-flex; align-items:center; border:1px solid var(--line); background:var(--paper); color:var(--ink);
+  font-family:inherit; font-size:11.5px; font-weight:600; padding:6px 11px; border-radius:7px; cursor:pointer;}
+.xlfilter-btn:hover{background:var(--bg);}
+.xlfilter-btn #xlfilterCount{color:var(--ink-dim); font-weight:700; margin-left:2px;}
+.xlfilter-menu{position:absolute; right:0; top:calc(100% + 6px); width:230px; background:var(--paper); border:1px solid var(--line);
+  border-radius:10px; box-shadow:var(--shadow); z-index:20; padding:8px; display:flex; flex-direction:column; gap:6px;}
+.xlfilter-search{width:100%; padding:6px 9px; border:1px solid var(--line); border-radius:7px; background:var(--bg); color:var(--ink);
+  font-family:inherit; font-size:12px; outline:none;}
+.xlfilter-search:focus{border-color:var(--base);}
+.xlfilter-list{max-height:210px; overflow-y:auto; border:1px solid var(--line); border-radius:7px; padding:2px 0;}
+.xlfilter-item{display:flex; align-items:center; gap:8px; padding:6px 9px; cursor:pointer; font-size:12px; color:var(--ink);}
+.xlfilter-item:hover{background:var(--bg);}
+.xlfilter-item input[type="checkbox"]{width:14px; height:14px; accent-color:var(--base); cursor:pointer; flex:none;}
+.xlfilter-item.xlfilter-all{font-weight:700; border-bottom:1px solid var(--line); border-radius:0;}
+.xlfilter-item .xl-swatch{width:9px; height:9px; border-radius:2px; flex:none;}
+.xlfilter-foot{display:flex; justify-content:flex-end; gap:6px; padding-top:2px;}
+.xlfilter-foot button{appearance:none; border:1px solid var(--line); font-family:inherit; font-size:11.5px; font-weight:700;
+  padding:6px 12px; border-radius:7px; cursor:pointer;}
+.xlfilter-cancel{background:var(--paper); color:var(--ink-dim);}
+.xlfilter-cancel:hover{background:var(--bg);}
+.xlfilter-ok{background:var(--base); color:#fff; border-color:var(--base);}
+.xlfilter-ok:hover{opacity:.9;}
+.trend-chart-wrap{position:relative; width:100%;}
+.trend-chart-wrap svg{display:block; width:100%; height:auto; overflow:visible;}
+.trend-gridline{stroke:var(--line); stroke-width:1;}
+.trend-axis{stroke:var(--ink-dim); stroke-width:1;}
+.trend-ytick, .trend-xtick{font-size:10.5px; fill:var(--ink-dim); font-family:inherit;}
+.trend-line{fill:none; stroke-width:2; stroke-linejoin:round; stroke-linecap:round; transition:opacity .12s ease;}
+.trend-dot{stroke:var(--paper); stroke-width:2;}
+.trend-crosshair{stroke:var(--ink-dim); stroke-width:1; stroke-dasharray:3,3; pointer-events:none;}
+.trend-hit{fill:transparent; cursor:crosshair;}
+.trend-endlabel{font-size:10.5px; font-weight:700; font-family:inherit;}
+.trend-tooltip{ position:absolute; pointer-events:none; background:var(--headerbg); color:#fff; border-radius:9px;
+  padding:9px 12px; font-size:11.5px; box-shadow:var(--shadow); min-width:150px; z-index:5; transform:translate(-50%,-108%);}
+.trend-tooltip .tt-wk{font-size:10px; font-weight:700; color:rgba(255,255,255,.6); text-transform:uppercase; letter-spacing:.03em; margin-bottom:5px;}
+.trend-tooltip .tt-row{display:flex; align-items:center; gap:7px; padding:2px 0;}
+.trend-tooltip .tt-row .tt-key{width:10px; height:2px; border-radius:1px; flex:none;}
+.trend-tooltip .tt-row .tt-name{flex:1; color:rgba(255,255,255,.85); white-space:nowrap;}
+.trend-tooltip .tt-row .tt-val{font-weight:800; color:#fff;}
+.trend-legend{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
+.trend-legend-item{display:flex; align-items:center; gap:7px; background:var(--bg); border:1px solid var(--line); border-radius:999px;
+  padding:6px 12px 6px 10px; cursor:pointer; user-select:none; transition:opacity .12s ease;}
+.trend-legend-item.is-off{opacity:.4;}
+.trend-legend-item .tl-swatch{width:10px; height:10px; border-radius:3px; flex:none;}
+.trend-legend-item .tl-name{font-size:11.5px; font-weight:700; color:var(--ink);}
+.trend-legend-item .tl-val{font-size:11px; font-weight:600; color:var(--ink-dim);}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:wght@500;600;700&family=IBM+Plex+Sans:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+
+<div class="wrap">
+
+  <!-- ===== Header ===== -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="mark">8P</div>
+      <div class="titleblock">
+        <h1>แดชบอร์ด QA/QC เปรียบเทียบโครงการ</h1>
+        <p>Drawing · Control · Corrective · Change · Complete</p>
+      </div>
+    </div>
+    <div class="kpi-row" id="kpiRow"></div>
+  </div>
+
+  <!-- ===== Tabs ===== -->
+  <div class="viewtabs">
+    <button type="button" class="viewtab is-active" id="tab-btn-table" onclick="switchView('table')">ตารางเปรียบเทียบ</button>
+    <button type="button" class="viewtab" id="tab-btn-trend" onclick="switchView('trend')">เทรนด์รายสัปดาห์</button>
+  </div>
+
+  <div id="view-table">
+  <div class="kpi-detail" id="kpiDetail"></div>
+
+  <!-- ===== Main: table + side progress ===== -->
+  <div class="main">
+
+    <div class="panel">
+      <div class="toolbar">
+        <input id="searchInput" type="text" placeholder="ค้นหาชื่อโครงการ หรือรหัสไซต์ (SKK-xx)..." />
+        <div class="tb-sort">
+          <span>เรียงตาม</span>
+          <select id="sortSelect">
+            <option value="status">สถานะรวม — แย่สุดก่อน (CRITICAL → ON TRACK)</option>
+            <option value="pending">เอกสารค้างทั้งหมด — เยอะสุดก่อน</option>
+            <option value="overdue">เอกสารเกินกำหนด — เยอะสุดก่อน</option>
+            <option value="drawing">Drawing ตามหลังแผน — ตามมากสุดก่อน</option>
+            <option value="site">หน้างานตามหลังแผน (S-Curve) — ตามมากสุดก่อน</option>
+            <option value="name">ชื่อ/รหัสไซต์โครงการ (A-Z)</option>
+          </select>
+        </div>
+        <span id="resultCount" class="tb-count"></span>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <colgroup>
+            <col class="c-proj"><col class="c-wide"><col class="c-num"><col class="c-num"><col class="c-num">
+            <col class="c-wide"><col class="c-wide"><col class="c-wide"><col class="c-wide">
+            <col class="c-wide"><col class="c-wide"><col class="c-wide">
+            <col class="c-num"><col class="c-num"><col class="c-wide">
+          </colgroup>
+          <thead>
+            <tr class="grp">
+              <th class="grp-proj"></th>
+              <th class="grp-base">① Baseline</th>
+              <th class="grp-ctrl" colspan="3">② Control</th>
+              <th class="grp-corr" colspan="4">③ Corrective</th>
+              <th class="grp-chg" colspan="3">④ Change</th>
+              <th class="grp-comp" colspan="2">⑤ Complete</th>
+              <th class="grp-more"></th>
+            </tr>
+            <tr class="sub">
+              <th class="proj-h">Site</th>
+              <th class="th-base">Drawing</th>
+              <th class="th-ctrl">ITP</th>
+              <th class="th-ctrl">RFI</th>
+              <th class="th-ctrl">ITR</th>
+              <th class="th-corr">NCR<br><span class="th-flow">Owner→EPS</span></th>
+              <th class="th-corr">NCR<br><span class="th-flow">EPS→ผรม</span></th>
+              <th class="th-corr">CAR<br><span class="th-flow">Owner→EPS</span></th>
+              <th class="th-corr">CAR<br><span class="th-flow">EPS→ผรม</span></th>
+              <th class="th-chg">FCR</th>
+              <th class="th-chg">DCR</th>
+              <th class="th-chg">VO</th>
+              <th class="th-comp">Punchlist<br><span class="th-flow">ชุด A</span></th>
+              <th class="th-comp">Punchlist<br><span class="th-flow">ชุด B</span></th>
+              <th class="th-more">เกินกำหนด</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="foot-note">
+ตัวเลขในกรอบคอลัมน์ RFI/NCR/CAR/FCR/DCR/VO = <b>จำนวนเอกสารทั้งหมด</b>ของประเภทนั้น (เปิด+ปิด รวมที่เคยส่งมา ไม่ใช่แค่ที่ยังค้าง) ส่วน ITP = <b>จำนวนสาขาที่ส่งแล้ว</b> (สูงสุด 3 — ME/CE/EE ส่งได้สาขาละ 1 ใบเท่านั้น ไม่มีสีเตือน) กดขยายดูว่าสาขาไหนยังไม่ส่งได้ ส่วน Punchlist ชุด A/ชุด B และเกินกำหนด = จำนวนที่ยังค้างอยู่ กดปุ่ม <span class="expand-btn" style="width:14px;height:14px;vertical-align:middle;"><svg width="8" height="8" viewBox="0 0 10 10"><path d="M2 3.2L5 6.3L8 3.2" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span> ข้างตัวเลข (ถ้ามี) เพื่อดูรายละเอียดของคอลัมน์นั้น<br>
+สีของช่อง RFI/NCR/CAR/FCR/DCR/VO (เขียว/เหลือง/แดง) <b>ไม่ได้</b>ดูจากจำนวนดิบเทียบข้ามโปรเจกต์ตรงๆ แต่คำนวณจาก <b>% ค้าง = เปิดค้าง ÷ (เปิดค้าง+ปิดแล้ว) × 100</b> ของประเภทนั้นในโปรเจกต์นั้นเอง (เกณฑ์: &lt;25%=ปกติ, 25–44%=เฝ้าระวัง, ≥45%=ต้องรีบดู) เพื่อเทียบโปรเจกต์ขนาดต่างกันได้แฟร์ขึ้น — โปรเจกต์ใหญ่มีเอกสารเยอะกว่าโดยธรรมชาติ ไม่ได้แปลว่าคุณภาพแย่กว่า ดูสูตรเต็มได้เมื่อกดขยายแต่ละคอลัมน์ ส่วน Punchlist/เกินกำหนด/Drawing ยังใช้จำนวนดิบเทียบเกณฑ์คงที่เหมือนเดิม (แดงกระพริบ=เกินกำหนดมาก)<br>
+Progress โครงการ (แผงขวา) เป็นข้อมูลหน้างานจริงจาก S-Curve/SharePoint คนละชุดกับ Drawing ที่มาจาก Conzol<br>
+▲/▼ ข้างสถานะ = ค้างสุทธิเปลี่ยนไปเท่าไหร่เทียบสัปดาห์ก่อน (เอกสารเปิดใหม่ − ปิดไป) สีแดง=backlog กำลังโต ต้องรีบดู, สีเขียว=backlog กำลังลด · "ค้างเฉลี่ย" ในรายละเอียด NCR/CAR = อายุเฉลี่ยของรายการที่ยังค้างอยู่ ไม่ใช่แค่จำนวน<br>
+กดขยายคอลัมน์ Drawing จะเห็น 2 ชุด breakdown แยกกัน: แยกตามสาขา (ME/CE/EE เทียบแผน/จริง) และแยกตามประเภทเอกสาร (FS=Flowsheet, GA=GA Drawing, LD=Load Data, FD=Fabrication Drawing — จำนวนจริงเฉยๆ ไม่มีแผนเทียบ)<br>
+*ข้อมูล Plan รายสาขา, S-Curve, เกินกำหนด, ค้างสุทธิ, ITP, ประเภทเอกสาร Drawing (FS/GA/LD/FD) และค้างเฉลี่ย เป็นค่าตัวอย่าง รอเชื่อมข้อมูลจริง
+      </div>
+    </div>
+
+    <!-- ===== Right: progress ===== -->
+    <div class="side-stack">
+      <div class="panel side">
+        <div class="phead">Progress โครงการ<span style="display:block; font-weight:400; font-size:9.5px; color:var(--ink-dim); text-transform:none; letter-spacing:0; margin-top:2px;">% ความคืบหน้าหน้างานจริง (S-Curve) vs แผน</span></div>
+        <div class="proglist" id="proglist-baseline"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== Bottom legend strip ===== -->
+  <div class="legendbar">
+    <div class="li li1"><span class="ico">①</span><div class="tx"><b>Drawing</b><span>เทียบแบบที่แพลนไว้ กับแบบที่มีใน Conzol</span></div></div>
+    <div class="li li2"><span class="ico">②</span><div class="tx"><b>Control</b><span>ITP=ส่งแล้วกี่สาขา (สูงสุด 3, ME/CE/EE ส่งได้สาขาละ 1 ใบ) · RFI เปิด=Revision ปิด=0</span></div></div>
+    <div class="li li3"><span class="ico">③</span><div class="tx"><b>Corrective</b><span>NCR=major · CAR=minor · แยก Owner→EPS→ผรม</span></div></div>
+    <div class="li li4"><span class="ico">④</span><div class="tx"><b>Change</b><span>FCR=ผรม.ขอแก้ · DCR=EX คำนวณใหม่ · VO=เพิ่ม cost</span></div></div>
+    <div class="li li5"><span class="ico">⑤</span><div class="tx"><b>Complete</b><span>Punchlist A/B ต้องปิดก่อน Commission</span></div></div>
+  </div>
+  </div>
+  <!-- ===== /view-table ===== -->
+
+  <!-- ===== Trend view ===== -->
+  <div id="view-trend" style="display:none;">
+    <div class="panel trend-panel">
+      <div class="trend-head">
+        <div class="trend-title">เทรนด์จำนวนเอกสารรายสัปดาห์ (ทุกเอกสาร ต่อโครงการ)<span>เทียบ 8 สัปดาห์ล่าสุด ต่อโครงการ</span></div>
+        <div class="trend-filters">
+          <div class="xlfilter">
+            <button type="button" class="xlfilter-btn" id="xlfilterBtn" onclick="toggleTrendFilterMenu()">ตัวกรองโครงการ <span id="xlfilterCount"></span><svg width="9" height="9" viewBox="0 0 10 10" style="margin-left:3px;"><path d="M2 3.2L5 6.3L8 3.2" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="xlfilter-menu" id="xlfilterMenu" style="display:none;">
+              <input type="text" id="xlfilterSearch" class="xlfilter-search" placeholder="ค้นหาโครงการ..." oninput="renderTrendFilterList()"/>
+              <div class="xlfilter-list" id="xlfilterList"></div>
+              <div class="xlfilter-foot">
+                <button type="button" class="xlfilter-cancel" onclick="cancelTrendFilterMenu()">ยกเลิก</button>
+                <button type="button" class="xlfilter-ok" onclick="applyTrendFilterMenu()">ตกลง</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="trend-chart-wrap" id="trendChartWrap"></div>
+      <div class="trend-legend" id="trendLegend"></div>
+      <div class="foot-note">ข้อมูลเทรนด์เป็นค่าตัวอย่าง 8 สัปดาห์ล่าสุด (sample data) รอเชื่อมข้อมูลจริงรายสัปดาห์ — เอาเมาส์ไปวางบนกราฟเพื่อดูค่าของแต่ละโครงการในสัปดาห์นั้นๆ กด "ตัวกรองโครงการ" เพื่อเลือกโครงการที่จะแสดง</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const data = [
+  {p:"Project A", site:"SKK-01", siteProgress:{plan:85, actual:88}, draw:{plan:400,actual:412,off:33, me:{plan:160,actual:165}, ce:{plan:130,actual:135}, ee:{plan:110,actual:112}, types:{fs:5,ga:180,ld:150,fd:77}}, rfiOpen:6,  rfiClosed:12, itr:2,  itp:{me:true, ce:true, ee:true}, ncrO:2,  ncrOc:4,  ncrE:0,  ncrEc:2,  carO:4,  carOc:6,  carE:2,  carEc:4,  fcrClosed:5,  fcrOpen:2, dcrClosed:1,  dcrOpen:1, voClosed:2,  voOpen:1, a:2, b:6, overdue:3,  overdueTotal:50, ncrAvgAge:5,  carAvgAge:4,  netChange:-5},
+  {p:"Project B", site:"SKK-02", siteProgress:{plan:80, actual:76}, draw:{plan:380,actual:374,off:75, me:{plan:150,actual:155}, ce:{plan:125,actual:120}, ee:{plan:105,actual:99}, types:{fs:5,ga:165,ld:140,fd:64}}, rfiOpen:9,  rfiClosed:16, itr:3,  itp:{me:true, ce:true, ee:true}, ncrO:4,  ncrOc:7,  ncrE:2,  ncrEc:5,  carO:6,  carOc:9,  carE:2,  carEc:5,  fcrClosed:6,  fcrOpen:3, dcrClosed:3,  dcrOpen:2, voClosed:1,  voOpen:1, a:4, b:8, overdue:6,  overdueTotal:77, ncrAvgAge:9,  carAvgAge:7,  netChange:2},
+  {p:"Project C", site:"SKK-03", siteProgress:{plan:68, actual:60}, draw:{plan:320,actual:298,off:104,me:{plan:120,actual:118}, ce:{plan:100,actual:98},  ee:{plan:100,actual:82}, types:{fs:4,ga:130,ld:110,fd:54}}, rfiOpen:14, rfiClosed:14, itr:3,  itp:{me:true, ce:true, ee:false}, ncrO:5,  ncrOc:9,  ncrE:3,  ncrEc:7,  carO:5,  carOc:9,  carE:2,  carEc:6,  fcrClosed:6,  fcrOpen:4, dcrClosed:2,  dcrOpen:2, voClosed:2,  voOpen:2, a:3, b:9, overdue:9,  overdueTotal:86, ncrAvgAge:12, carAvgAge:10, netChange:4},
+  {p:"Project D", site:"SKK-04", siteProgress:{plan:58, actual:45}, draw:{plan:290,actual:256,off:115,me:{plan:110,actual:104}, ce:{plan:90, actual:88},  ee:{plan:90, actual:64}, types:{fs:4,ga:112,ld:95,fd:45}}, rfiOpen:19, rfiClosed:15, itr:3,  itp:{me:true, ce:false, ee:false}, ncrO:8,  ncrOc:14, ncrE:4,  ncrEc:10, carO:2,  carOc:8,  carE:3,  carEc:9,  fcrClosed:8,  fcrOpen:6, dcrClosed:4,  dcrOpen:3, voClosed:0,  voOpen:2, a:6, b:12, overdue:15, overdueTotal:110, ncrAvgAge:18, carAvgAge:15, netChange:7},
+  {p:"Project E", site:"SKK-05", siteProgress:{plan:82, actual:85}, draw:{plan:250,actual:256,off:31, me:{plan:100,actual:104}, ce:{plan:80, actual:82},  ee:{plan:70, actual:70}, types:{fs:3,ga:115,ld:92,fd:46}}, rfiOpen:4,  rfiClosed:10, itr:0,  itp:{me:true, ce:true, ee:true}, ncrO:1,  ncrOc:3,  ncrE:0,  ncrEc:2,  carO:2,  carOc:4,  carE:0,  carEc:2,  fcrClosed:3,  fcrOpen:2, dcrClosed:0,  dcrOpen:1, voClosed:2,  voOpen:1, a:1, b:3, overdue:2,  overdueTotal:32, ncrAvgAge:4,  carAvgAge:3,  netChange:-8},
+  {p:"Project F", site:"SKK-06", siteProgress:{plan:72, actual:70}, draw:{plan:325,actual:317,off:86, me:{plan:130,actual:128}, ce:{plan:105,actual:103}, ee:{plan:90, actual:86}, types:{fs:4,ga:140,ld:115,fd:58}}, rfiOpen:12, rfiClosed:16, itr:6,  itp:{me:true, ce:true, ee:false}, ncrO:3,  ncrOc:6,  ncrE:1,  ncrEc:4,  carO:2,  carOc:5,  carE:2,  carEc:5,  fcrClosed:5,  fcrOpen:3, dcrClosed:1,  dcrOpen:2, voClosed:2,  voOpen:1, a:3, b:7, overdue:5,  overdueTotal:66, ncrAvgAge:8,  carAvgAge:6,  netChange:0},
+  {p:"Project G", site:"SKK-07", siteProgress:{plan:42, actual:30}, draw:{plan:230,actual:198,off:119,me:{plan:90, actual:85},  ce:{plan:75, actual:70},  ee:{plan:65, actual:43}, types:{fs:3,ga:88,ld:70,fd:37}}, rfiOpen:21, rfiClosed:29, itr:6,  itp:{me:true, ce:false, ee:false}, ncrO:8,  ncrOc:15, ncrE:4,  ncrEc:11, carO:2,  carOc:9,  carE:2,  carEc:9,  fcrClosed:9,  fcrOpen:7, dcrClosed:5,  dcrOpen:4, voClosed:2,  voOpen:3, a:6, b:14, overdue:22, overdueTotal:130, ncrAvgAge:22, carAvgAge:17, netChange:10},
+  {p:"Project H", site:"SKK-08", siteProgress:{plan:33, actual:22}, draw:{plan:115,actual:105,off:73, me:{plan:45, actual:42},  ce:{plan:40, actual:38},  ee:{plan:30, actual:25}, types:{fs:2,ga:46,ld:37,fd:20}}, rfiOpen:31, rfiClosed:30, itr:7,  itp:{me:false, ce:false, ee:false}, ncrO:12, ncrOc:21, ncrE:6,  ncrEc:15, carO:3,  carOc:12, carE:4,  carEc:13, fcrClosed:11, fcrOpen:9, dcrClosed:6,  dcrOpen:5, voClosed:5,  voOpen:3, a:9, b:18, overdue:34, overdueTotal:174, ncrAvgAge:28, carAvgAge:21, netChange:13},
+];
+
+function sev(v, mid, hi){ return v>=hi?'st-bad':v>=mid?'st-warn':'st-good'; }
+function num(v, mid, hi){ return `<span class="${sev(v,mid,hi)}">${v}</span>`; }
+function heatLevel(open, mid, hi){ return open===0 ? 'none' : open>=hi ? 'high' : open>=mid ? 'mid' : 'low'; }
+// สีเตือน (severity) ของคอลัมน์เอกสารที่มีเปิด/ปิด (RFI, NCR, CAR, FCR, DCR, VO):
+// คำนวณจาก "% ที่ยังค้าง" เทียบยอดที่เคยเปิดทั้งหมดของประเภทนั้นในโปรเจกต์นั้น (open / (open+closed) x 100)
+// ไม่ใช้จำนวนดิบเทียบข้ามโปรเจกต์ตรงๆ เพราะแต่ละโปรเจกต์มีปริมาณงานไม่เท่ากัน โปรเจกต์ใหญ่ย่อมมีเอกสารเยอะกว่าโดยธรรมชาติ ไม่ได้แปลว่าคุณภาพแย่กว่า
+// เกณฑ์: 0% = none (ไม่มีค้าง) · <25% = low (ปกติ) · 25–44% = mid (เฝ้าระวัง) · ≥45% = high (ต้องรีบดู)
+const RATE_MID = 25, RATE_HI = 45;
+function openRatePct(open, closed){ return (open+closed) > 0 ? Math.round(open/(open+closed)*100) : 0; }
+function openRateLevel(open, closed){
+  if(open === 0) return 'none';
+  const pct = openRatePct(open, closed);
+  return pct >= RATE_HI ? 'high' : pct >= RATE_MID ? 'mid' : 'low';
+}
+// ITP: แต่ละสาขา (ME/CE/EE) ส่งได้ใบเดียว เลยนับได้สูงสุด 3 ใบต่อโครงการ — ใช้ดูว่าสาขาไหนยังไม่ส่ง
+function itpTotal(d){ return [d.itp.me, d.itp.ce, d.itp.ee].filter(Boolean).length; }
+function docTotal(d){
+  return d.draw.actual + (d.rfiOpen+d.rfiClosed) + d.itr + itpTotal(d)
+    + (d.ncrO+d.ncrOc) + (d.ncrE+d.ncrEc) + (d.carO+d.carOc) + (d.carE+d.carEc)
+    + (d.fcrClosed+d.fcrOpen) + (d.dcrClosed+d.dcrOpen) + (d.voClosed+d.voOpen)
+    + (d.a+d.b);
+}
+function closureRate(closed, open){ return closed/(closed+open)*100; }
+
+// เทียบจำนวนฉบับจริง vs แผนตรงๆ (ไม่ใช้ %): เขียว=ทัน/นำแผน เหลือง=ต่ำกว่าแผน 1-10 ฉบับ แดง=ต่ำกว่าแผนเกิน 10 ฉบับ
+function drawDiff(plan, actual){ return actual - plan; }
+function drawLevel(plan, actual){
+  const diff = drawDiff(plan, actual);
+  return diff >= 0 ? 'good' : diff >= -10 ? 'warn' : 'bad';
+}
+function drawColorVar(level){ return level==='good' ? 'var(--good)' : level==='warn' ? 'var(--warn)' : 'var(--bad)'; }
+// คะแนนสำหรับ readiness รวม: ทัน/นำแผน=เต็ม ตามหลังเล็กน้อย=กลาง ตามหลังเยอะ=ต่ำ
+function drawScore(plan, actual){
+  const lvl = drawLevel(plan, actual);
+  return lvl==='good' ? 100 : lvl==='warn' ? 65 : 25;
+}
+function readinessParts(d){
+  const controlPct = closureRate(d.rfiClosed, d.rfiOpen);
+  const correctivePct = (
+    closureRate(d.ncrO, d.ncrOc) + closureRate(d.ncrE, d.ncrEc) +
+    closureRate(d.carO, d.carOc) + closureRate(d.carE, d.carEc)
+  ) / 4;
+  return {controlPct, correctivePct};
+}
+function readiness(d){
+  const {controlPct, correctivePct} = readinessParts(d);
+  const baselinePct = drawScore(d.draw.plan, d.draw.actual);
+  return Math.round((baselinePct + controlPct + correctivePct) / 3);
+}
+function pillClass(pct){ return pct<50 ? 'pill-bad' : pct<75 ? 'pill-warn' : 'pill-good'; }
+function pillLabel(pct){ return pct<50 ? 'CRITICAL' : pct<75 ? 'AT RISK' : 'ON TRACK'; }
+// ค้างสุทธิเปลี่ยนไปเท่าไหร่เทียบสัปดาห์ก่อน (เอกสารเปิดใหม่ − ปิดไป) — leading indicator บอกทิศทาง backlog
+function trendTag(d){
+  const n = d.netChange;
+  const cls = n > 0 ? 'up' : n < 0 ? 'down' : 'flat';
+  const arrow = n > 0 ? '▲' : n < 0 ? '▼' : '—';
+  const txt = n === 0 ? 'ค้างคงที่' : `ค้าง${n > 0 ? 'เพิ่ม' : 'ลด'} ${Math.abs(n)} ใบ`;
+  return `<span class="trendtag ${cls}" title="เอกสารค้างสุทธิ (เปิดใหม่ − ปิดไป) เทียบสัปดาห์ก่อน">${arrow} ${txt}</span>`;
+}
+// สัดส่วนแท่งเทียบกันเองภายในแถว (ไม่ใช้ scale เดียวกันข้ามโครงการ เพราะแต่ละโครงการขอบเขตต่างกัน)
+function barWidths(plan, actual){
+  const maxV = Math.max(plan, actual) * 1.15 || 1;
+  return { planW: plan/maxV*100, actualW: actual/maxV*100 };
+}
+
+// การ์ดสาขาย่อย (ME/CE/EE) แสดงใต้แถวโครงการเมื่อกดที่ช่อง Drawing
+function discRow(label, plan, actual){
+  const lvl = drawLevel(plan, actual);
+  const diff = drawDiff(plan, actual);
+  const {planW, actualW} = barWidths(plan, actual);
+  const diffTxt = diff > 0 ? `+${diff}` : `${diff}`;
+  return `<div class="disc-row">
+    <div class="disc-row-top">
+      <span class="dnm">${label}</span>
+      <span class="dof">${diffTxt} ฉบับ</span>
+      <span class="dv draw-${lvl}">${actual}<span style="color:var(--ink-dim); font-weight:500;">/${plan}</span></span>
+    </div>
+    <div class="bar-mini actual draw-${lvl}"><i style="width:${actualW}%;"></i></div>
+    <div class="bar-mini plan"><i style="width:${planW}%;"></i></div>
+  </div>`;
+}
+
+// ปุ่มขยายรายละเอียด (chevron) — ใช้ร่วมกันทั้ง Drawing และ คงค้าง
+function expandChevronSvg(){
+  return `<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.2L5 6.3L8 3.2" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function expandBtn(onclickCall){
+  return `<button type="button" class="expand-btn" onclick="${onclickCall}" aria-label="ดูรายละเอียด">${expandChevronSvg()}</button>`;
+}
+
+// รวมเอกสารที่ยังค้าง (open) ทุกประเภทของโครงการ — ใช้ทั้งแสดงในคอลัมน์ คงค้าง และ sort
+function totalOpenDocs(d){
+  return d.rfiOpen + d.ncrO+d.ncrE + d.carO+d.carE + d.fcrOpen + d.dcrOpen + d.voOpen + (d.a+d.b);
+}
+
+// ===== ก้อนตัวเลขเดียว + กดขยายดูรายละเอียด — ใช้กับทุกคอลัมน์เอกสารในตาราง =====
+// แต่ละคอลัมน์โชว์แค่ตัวเลข "ค้าง" ตัวเดียว สีบอกความรุนแรง กดปุ่มเพื่อดู breakdown ใต้แถว
+// mid/hi (คอลัมน์ที่ไม่มี closed) = threshold จำนวนดิบ; คอลัมน์ที่มี closed จะใช้ % ค้างแทน (ดู openRateLevel ด้านบน)
+const colDefs = {
+  itp:     {label:'ITP',            custom:'itp'},
+  rfi:     {label:'RFI',            open:d=>d.rfiOpen, closed:d=>d.rfiClosed},
+  ncrO:    {label:'NCR Owner→EPS',  open:d=>d.ncrO,    closed:d=>d.ncrOc},
+  ncrE:    {label:'NCR EPS→ผรม.',   open:d=>d.ncrE,    closed:d=>d.ncrEc},
+  carO:    {label:'CAR Owner→EPS',  open:d=>d.carO,    closed:d=>d.carOc},
+  carE:    {label:'CAR EPS→ผรม.',   open:d=>d.carE,    closed:d=>d.carEc},
+  fcr:     {label:'FCR',            open:d=>d.fcrOpen, closed:d=>d.fcrClosed},
+  dcr:     {label:'DCR',            open:d=>d.dcrOpen, closed:d=>d.dcrClosed},
+  vo:      {label:'VO',             open:d=>d.voOpen,  closed:d=>d.voClosed},
+  puncha:  {label:'Punchlist ชุด A', open:d=>d.a,       mid:4,  hi:7,  noExpand:true},
+  punchb:  {label:'Punchlist ชุด B', open:d=>d.b,       mid:8,  hi:14, noExpand:true},
+  overdue: {label:'เกินกำหนด',       open:d=>d.overdue, mid:8,  hi:18, custom:'overdue', blink:true},
+  draw:    {label:'Drawing',        custom:'draw'},
+};
+
+function tile(val, label, lvl){
+  return `<div class="pending-chip${lvl ? ' pending-'+lvl : ''}"><span class="pc-val">${val}</span><span class="pc-lbl">${label}</span></div>`;
+}
+
+function mchip(d, key){
+  const cfg = colDefs[key];
+  const btn = expandBtn(`toggleColDetail('${d.site}','${key}', this)`);
+  if(key === 'draw'){
+    const lvl = drawLevel(d.draw.plan, d.draw.actual);
+    return `<div class="mchip"><span class="chip draw-chip-${lvl}">${d.draw.actual}</span>${btn}</div>`;
+  }
+  if(key === 'itp'){
+    // ITP = แต่ละสาขาส่งได้ใบเดียว โชว์ "ส่งแล้ว/ทั้งหมด" เฉยๆ ไม่มีสีเตือน กดขยายดูว่าสาขาไหนยังไม่ส่ง
+    return `<div class="mchip"><span class="chip chip-none">${itpTotal(d)}</span>${btn}</div>`;
+  }
+  const open = cfg.open(d);
+  // คอลัมน์ที่มีเปิด/ปิด (RFI/NCR/CAR/FCR/DCR/VO) โชว์ "จำนวนเอกสารทั้งหมด" (เปิด+ปิด รวมที่เคยส่งมา) ไม่ใช่แค่ที่ยังค้าง
+  // ส่วนสีเตือน/กระพริบยังคำนวณจาก % ค้าง (open ÷ total) เหมือนเดิม ไม่เกี่ยวกับตัวเลขที่โชว์
+  const val = cfg.closed ? open + cfg.closed(d) : open;
+  const lvl = cfg.closed ? openRateLevel(open, cfg.closed(d)) : heatLevel(open, cfg.mid, cfg.hi);
+  // กระพริบเมื่อ "ต้องรีบดู" (high) — ทั้งคอลัมน์ที่คำนวณจาก % ค้าง (RFI/NCR/CAR/FCR/DCR/VO) และคอลัมน์ที่ตั้ง blink ไว้เอง (เกินกำหนด)
+  const blink = lvl === 'high' && (cfg.blink || cfg.closed) ? ' chip-blink' : '';
+  // Punchlist ชุด A/B ไม่มีรายละเอียดย่อยเพิ่มเติม (แยกเป็นคอลัมน์ของตัวเองแล้ว) เลยไม่ต้องมีปุ่มขยาย
+  if(cfg.noExpand){
+    return `<span class="chip chip-${lvl}${blink}">${val}</span>`;
+  }
+  return `<div class="mchip"><span class="chip chip-${lvl}${blink}">${val}</span>${btn}</div>`;
+}
+
+function colDetailHtml(d, key){
+  const cfg = colDefs[key];
+  if(key === 'draw'){
+    const t = d.draw.types;
+    return `<span class="disc-wrap-lbl">Drawing แยกตามสาขา (${d.p}):</span>
+      ${discRow('ME', d.draw.me.plan, d.draw.me.actual)}
+      ${discRow('CE', d.draw.ce.plan, d.draw.ce.actual)}
+      ${discRow('EE', d.draw.ee.plan, d.draw.ee.actual)}
+      <span class="disc-wrap-lbl" style="flex-basis:100%; margin-top:4px;">Drawing แยกตามประเภทเอกสาร (${d.p}):</span>
+      ${tile(t.fs, 'FS', null)}
+      ${tile(t.ga, 'GA', null)}
+      ${tile(t.ld, 'LD', null)}
+      ${tile(t.fd, 'FD', null)}`;
+  }
+  if(key === 'itp'){
+    const itpTile = (sent, label) => tile(sent ? 'ส่งแล้ว' : 'ยังไม่ส่ง', label, sent ? 'low' : 'high');
+    return `<span class="disc-wrap-lbl">ITP แยกตามสาขา (${d.p}) — สาขาละ 1 ใบ:</span>
+      ${itpTile(d.itp.me, 'ME')}
+      ${itpTile(d.itp.ce, 'CE')}
+      ${itpTile(d.itp.ee, 'EE')}`;
+  }
+  if(key === 'overdue'){
+    return `<span class="disc-wrap-lbl">เอกสารเกินกำหนด (${d.p}):</span>
+      ${tile(d.overdue, 'ค้างเกินกำหนด', heatLevel(d.overdue, cfg.mid, cfg.hi))}
+      ${tile(d.overdueTotal, 'ทั้งหมดที่ติดตาม', null)}`;
+  }
+  const open = cfg.open(d), closed = cfg.closed(d);
+  const pct = openRatePct(open, closed);
+  const ageField = (key === 'ncrO' || key === 'ncrE') ? 'ncrAvgAge' : (key === 'carO' || key === 'carE') ? 'carAvgAge' : null;
+  const ageTile = ageField ? tile(d[ageField]+' วัน', 'ค้างเฉลี่ย', heatLevel(d[ageField], 10, 20)) : '';
+  return `<span class="disc-wrap-lbl">${cfg.label} (${d.p}):</span>
+    ${tile(open, 'ค้าง', openRateLevel(open, closed))}
+    ${tile(closed, 'ปิดแล้ว', null)}
+    ${tile(open+closed, 'ทั้งหมด', null)}
+    ${ageTile}
+    <span class="rate-note">สีของ "ค้าง" คำนวณจาก % ค้าง = ${open} ÷ (${open}+${closed}) × 100 = ${pct}% ของยอดที่เคยเปิดทั้งหมด (ไม่ใช่จำนวนดิบ) · เกณฑ์: &lt;${RATE_MID}%=ปกติ, ${RATE_MID}–${RATE_HI-1}%=เฝ้าระวัง, ≥${RATE_HI}%=ต้องรีบดู</span>`;
+}
+
+const openColKey = {};
+function toggleColDetail(site, key, btn){
+  const row = document.getElementById('detail-row-'+site);
+  const content = document.getElementById('detail-content-'+site);
+  if(!row || !content) return;
+  const parentRow = btn.closest('tr');
+  if(parentRow) parentRow.querySelectorAll('.expand-btn').forEach(b => b.classList.remove('is-open'));
+  const d = data.find(x => x.site === site);
+  if(openColKey[site] === key){
+    delete openColKey[site];
+    row.style.display = 'none';
+    content.innerHTML = '';
+    return;
+  }
+  openColKey[site] = key;
+  btn.classList.add('is-open');
+  content.innerHTML = colDetailHtml(d, key);
+  row.style.display = 'table-row';
+}
+
+function renderTable(list){
+  const tbody = document.getElementById('tbody');
+  if(list.length === 0){
+    tbody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding:26px; color:var(--ink-dim);">ไม่พบโครงการที่ตรงกับเงื่อนไข</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(d => {
+    const pct = readiness(d);
+    return `<tr>
+    <td class="projcell">${d.p}<span class="statuspill ${pillClass(pct)}">${pillLabel(pct)}</span>${trendTag(d)}<span class="sitecode">${d.site}</span></td>
+    <td>${mchip(d,'draw')}</td>
+    <td>${mchip(d,'itp')}</td>
+    <td>${mchip(d,'rfi')}</td>
+    <td><span class="chip chip-none">${d.itr}</span></td>
+    <td>${mchip(d,'ncrO')}</td>
+    <td>${mchip(d,'ncrE')}</td>
+    <td>${mchip(d,'carO')}</td>
+    <td>${mchip(d,'carE')}</td>
+    <td>${mchip(d,'fcr')}</td>
+    <td>${mchip(d,'dcr')}</td>
+    <td>${mchip(d,'vo')}</td>
+    <td>${mchip(d,'puncha')}</td>
+    <td>${mchip(d,'punchb')}</td>
+    <td>${mchip(d,'overdue')}</td>
+  </tr>
+  <tr class="detail-row" id="detail-row-${d.site}" style="display:none;">
+    <td colspan="15">
+      <div class="disc-wrap" id="detail-content-${d.site}"></div>
+    </td>
+  </tr>`;
+  }).join('');
+}
+
+// Progress โครงการ — % ความคืบหน้าหน้างานจริง (S-Curve จาก SharePoint) เทียบแผน คนละข้อมูลกับ Drawing/Conzol
+function siteLevel(plan, actual){
+  const diff = actual - plan;
+  return diff >= 0 ? 'good' : diff >= -8 ? 'warn' : 'bad';
+}
+function renderProglist(list){
+  const proglistBaseline = document.getElementById('proglist-baseline');
+  if(list.length === 0){
+    proglistBaseline.innerHTML = `<div style="padding:8px 4px; color:var(--ink-dim); font-size:11px;">ไม่พบโครงการที่ตรงกับเงื่อนไข</div>`;
+    return;
+  }
+  proglistBaseline.innerHTML = list.map(d => {
+    const {plan, actual} = d.siteProgress;
+    const lvl = siteLevel(plan, actual);
+    const diff = actual - plan;
+    const deltaClass = diff < -8 ? 'behind' : diff < 0 ? 'mid' : 'ahead';
+    const deltaTxt = diff > 0 ? `+${diff}%` : `${diff}%`;
+    return `<div class="progrow">
+    <div class="progrow-top">
+      <span class="nm">${d.p.replace('Project ','')}</span>
+      <span class="delta ${deltaClass}">${deltaTxt} vs แผน</span>
+      <span class="pv draw-${lvl}">${actual}%<span class="planof">/${plan}%</span></span>
+    </div>
+    <div class="bar-mini actual draw-${lvl}" style="width:100%;"><i style="width:${actual}%;"></i></div>
+    <div class="bar-mini plan" style="width:100%; margin-top:1px;"><i style="width:${plan}%;"></i></div>
+  </div>`;
+  }).join('');
+}
+
+// ===== Toolbar: search + sort + filter เกินกำหนด =====
+const searchInput = document.getElementById('searchInput');
+const sortSelect = document.getElementById('sortSelect');
+const resultCount = document.getElementById('resultCount');
+
+function sortFn(key){
+  if(key === 'status')  return (a,b) => readiness(a) - readiness(b); // CRITICAL (คะแนนต่ำสุด) ก่อน
+  if(key === 'pending')  return (a,b) => totalOpenDocs(b) - totalOpenDocs(a); // ค้างเยอะสุดก่อน
+  if(key === 'overdue')  return (a,b) => b.overdue - a.overdue; // เกินกำหนดเยอะสุดก่อน
+  if(key === 'drawing')  return (a,b) => drawDiff(a.draw.plan,a.draw.actual) - drawDiff(b.draw.plan,b.draw.actual); // ตามแผนมากสุด (ลบมากสุด) ก่อน
+  if(key === 'site')     return (a,b) => (a.siteProgress.actual-a.siteProgress.plan) - (b.siteProgress.actual-b.siteProgress.plan); // ตามแผนมากสุดก่อน
+  if(key === 'name')     return (a,b) => a.p.localeCompare(b.p);
+  return () => 0;
+}
+
+function applyFilters(){
+  const q = searchInput.value.trim().toLowerCase();
+  let list = data.filter(d => !q || d.p.toLowerCase().includes(q) || d.site.toLowerCase().includes(q));
+  list = list.slice().sort(sortFn(sortSelect.value));
+  resultCount.textContent = `แสดง ${list.length} จาก ${data.length} โครงการ`;
+  renderTable(list);
+  renderProglist(list);
+}
+
+searchInput.addEventListener('input', applyFilters);
+sortSelect.addEventListener('change', applyFilters);
+
+// แถบสรุปตัวเลขรวมทั้ง 8 โครงการ บนหัวแดชบอร์ด (ไม่เปลี่ยนตาม search/sort — เป็นภาพรวมทั้งหมด)
+// กดที่ก้อนตัวเลข เพื่อขยายดูแยกรายโครงการ — เหมือน Drawing/Discipline
+const kpiFns = {
+  base: d => d.draw.actual,
+  ctrl: d => d.rfiOpen+d.rfiClosed+d.itr+itpTotal(d),
+  corr: d => d.ncrO+d.ncrOc+d.ncrE+d.ncrEc+d.carO+d.carOc+d.carE+d.carEc,
+  chg:  d => d.fcrClosed+d.fcrOpen+d.dcrClosed+d.dcrOpen+d.voClosed+d.voOpen,
+  comp: d => d.a+d.b,
+  sum:  d => docTotal(d),
+};
+const kpiLabels = {base:'Drawing', ctrl:'Control', corr:'Corrective', chg:'Change', comp:'Complete', sum:'รวมทั้งหมด'};
+
+function renderKpiRow(){
+  const el = document.getElementById('kpiRow');
+  if(!el) return;
+  const totals = {};
+  Object.keys(kpiFns).forEach(cat => { totals[cat] = data.reduce((sum,d) => sum + kpiFns[cat](d), 0); });
+  const chevron = `<span class="kpi-chev">${expandChevronSvg()}</span>`;
+  const kpi = (cat,cls,ico) => `<div class="kpi" onclick="toggleKpiDetail('${cat}', this)"><span class="kpi-ico ${cls}">${ico}</span><div class="kpi-tx"><b>${totals[cat].toLocaleString()}</b><span>${kpiLabels[cat]}</span></div>${chevron}</div>`;
+  el.innerHTML = kpi('base','k-base','①')
+    + kpi('ctrl','k-ctrl','②')
+    + kpi('corr','k-corr','③')
+    + kpi('chg','k-chg','④')
+    + kpi('comp','k-comp','⑤')
+    + kpi('sum','k-sum','Σ');
+}
+
+let activeKpiCat = null;
+function toggleKpiDetail(cat, btn){
+  const panel = document.getElementById('kpiDetail');
+  document.querySelectorAll('.kpi').forEach(el => el.classList.remove('is-active'));
+  if(activeKpiCat === cat){
+    activeKpiCat = null;
+    panel.classList.remove('open');
+    return;
+  }
+  activeKpiCat = cat;
+  btn.classList.add('is-active');
+  const fn = kpiFns[cat];
+  const items = data.map(d => `<div class="kpi-detail-item"><b>${fn(d)}</b><span>${d.site}</span></div>`).join('');
+  panel.innerHTML = `<div class="kpi-detail-hd">${kpiLabels[cat]} แยกตามโครงการ</div><div class="kpi-detail-grid">${items}</div>`;
+  panel.classList.add('open');
+}
+
+// ===== หน้าเทรนด์รายสัปดาห์ (จำนวนเอกสารทั้งหมด ต่อโครงการ) — sample data, 8 สัปดาห์ล่าสุด =====
+function switchView(view){
+  document.getElementById('view-table').style.display = view === 'table' ? '' : 'none';
+  document.getElementById('view-trend').style.display = view === 'trend' ? '' : 'none';
+  document.getElementById('tab-btn-table').classList.toggle('is-active', view === 'table');
+  document.getElementById('tab-btn-trend').classList.toggle('is-active', view === 'trend');
+  if(view === 'trend') renderTrendChart();
+}
+
+const trendWeeks = ['สัปดาห์ -7','สัปดาห์ -6','สัปดาห์ -5','สัปดาห์ -4','สัปดาห์ -3','สัปดาห์ -2','สัปดาห์ -1','สัปดาห์นี้'];
+// จำนวนเอกสารทั้งหมด (ทุกประเภทรวมกัน = docTotal) ย้อนหลัง 8 สัปดาห์ ต่อโครงการ — ข้อมูลตัวอย่าง (สัปดาห์สุดท้าย = ค่า docTotal จริงจาก data ปัจจุบัน) รอเชื่อมข้อมูลจริงรายสัปดาห์
+const trendData = {
+  'SKK-01':[410,424,436,447,456,463,470,476],
+  'SKK-02':[402,415,427,438,448,456,463,470],
+  'SKK-03':[345,357,368,378,387,394,400,405],
+  'SKK-04':[320,333,346,358,368,376,384,392],
+  'SKK-05':[255,264,272,279,285,290,294,297],
+  'SKK-06':[345,357,368,378,387,394,399,403],
+  'SKK-07':[300,312,323,333,342,350,357,364],
+  'SKK-08':[260,272,283,293,302,310,318,325],
+};
+// สี categorical ลำดับคงที่ผูกกับโครงการ A-H ตายตัว (ไม่สลับตามอันดับความแย่/ดี)
+const trendVisible = {};
+data.forEach(d => { trendVisible[d.site] = true; });
+let trendFilterDraft = null; // สำเนาชั่วคราวระหว่างเปิดเมนูตัวกรอง — apply ต่อเมื่อกด "ตกลง" เหมือน Excel AutoFilter
+
+function niceMax(v){
+  // ปัดเพดานแกน Y ขึ้นเป็นเลขกลมๆ (step 50/100/250 ตามขนาดข้อมูล)
+  const step = v > 1000 ? 250 : v > 400 ? 100 : 50;
+  return Math.ceil(v / step) * step;
+}
+
+function renderTrendChart(){
+  const wrap = document.getElementById('trendChartWrap');
+  const legendEl = document.getElementById('trendLegend');
+  if(!wrap || !legendEl) return;
+
+  const W = 1000, H = 320, padL = 44, padR = 16, padT = 14, padB = 30;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = trendWeeks.length;
+  const xAt = i => padL + (plotW * i) / (n - 1);
+  const maxVal = niceMax(Math.max(...Object.values(trendData).flat()));
+  const yAt = v => padT + plotH - (plotH * v) / maxVal;
+
+  // gridlines + y ticks (5 ระดับ 0 → max)
+  let grid = '';
+  [0,0.25,0.5,0.75,1].forEach(f => {
+    const v = Math.round(maxVal * f);
+    const y = yAt(v);
+    grid += `<line class="trend-gridline" x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}"/>`;
+    grid += `<text class="trend-ytick" x="${padL-8}" y="${y+3}" text-anchor="end">${v.toLocaleString()}</text>`;
+  });
+  // x ticks (ทุกสัปดาห์)
+  let xticks = '';
+  trendWeeks.forEach((wk,i) => {
+    xticks += `<text class="trend-xtick" x="${xAt(i)}" y="${H-8}" text-anchor="middle">${i===n-1?'ตอนนี้':'W'+(i-n+1)}</text>`;
+  });
+  const axis = `<line class="trend-axis" x1="${padL}" y1="${padT+plotH}" x2="${W-padR}" y2="${padT+plotH}"/>`;
+
+  const visibleSites = data.filter(d => trendVisible[d.site]);
+
+  // เส้นกราฟ + จุดปลายเส้น — label ปลายเส้นเฉพาะตอนเลือกดูไม่เกิน 4 โครงการ กันชนกัน (ตาม anti-pattern เส้นชนกัน)
+  let lines = '', endLabels = '';
+  data.forEach((d, idx) => {
+    if(!trendVisible[d.site]) return;
+    const vals = trendData[d.site];
+    const pts = vals.map((v,i) => `${xAt(i)},${yAt(v)}`).join(' ');
+    lines += `<polyline class="trend-line" points="${pts}" style="stroke:var(--trend-${idx+1});"/>`;
+    const lastX = xAt(n-1), lastY = yAt(vals[n-1]);
+    lines += `<circle class="trend-dot" cx="${lastX}" cy="${lastY}" r="4" style="fill:var(--trend-${idx+1});"/>`;
+    if(visibleSites.length <= 4){
+      endLabels += `<text class="trend-endlabel" x="${lastX+7}" y="${lastY+4}" style="fill:var(--trend-${idx+1});">${d.p} ${vals[n-1].toLocaleString()}</text>`;
+    }
+  });
+
+  wrap.innerHTML = `<svg viewBox="0 0 ${W} ${H}" id="trendSvg">
+    ${grid}${axis}${xticks}${lines}${endLabels}
+    <rect class="trend-hit" x="${padL}" y="${padT}" width="${plotW}" height="${plotH}"/>
+    <line class="trend-crosshair" id="trendCrosshair" x1="0" y1="${padT}" x2="0" y2="${padT+plotH}" style="display:none;"/>
+  </svg>`;
+
+  const svg = document.getElementById('trendSvg');
+  const tooltip = ensureTrendTooltip();
+  const hit = svg.querySelector('.trend-hit');
+  const crosshair = document.getElementById('trendCrosshair');
+
+  function pointerToWeekIdx(evt){
+    const rect = svg.getBoundingClientRect();
+    const clientX = (evt.touches ? evt.touches[0].clientX : evt.clientX) - rect.left;
+    const svgX = (clientX / rect.width) * W;
+    const ratio = (svgX - padL) / plotW;
+    return Math.max(0, Math.min(n-1, Math.round(ratio * (n-1))));
+  }
+
+  hit.addEventListener('mousemove', evt => {
+    if(visibleSites.length === 0) return;
+    const i = pointerToWeekIdx(evt);
+    const x = xAt(i);
+    crosshair.setAttribute('x1', x); crosshair.setAttribute('x2', x);
+    crosshair.style.display = '';
+    const rows = data.filter(d => trendVisible[d.site]).map((d) => {
+      const idx = data.indexOf(d);
+      const v = trendData[d.site][i];
+      return `<div class="tt-row"><span class="tt-key" style="background:var(--trend-${idx+1});"></span><span class="tt-name">${d.p}</span><span class="tt-val">${v.toLocaleString()} ฉบับ</span></div>`;
+    }).join('');
+    tooltip.innerHTML = `<div class="tt-wk">${trendWeeks[i]}</div>${rows}`;
+    const rect = svg.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    tooltip.style.left = (rect.left - wrapRect.left + (x/W)*rect.width) + 'px';
+    tooltip.style.top = (rect.top - wrapRect.top + (yAt(maxVal*0.5)/H)*rect.height) + 'px';
+    tooltip.style.display = 'block';
+  });
+  hit.addEventListener('mouseleave', () => {
+    crosshair.style.display = 'none';
+    tooltip.style.display = 'none';
+  });
+
+  // legend — แสดงเฉพาะโครงการที่กำลังเลือกดูอยู่ (อ่านอย่างเดียว กรองจริงทำผ่านปุ่ม "ตัวกรองโครงการ" แบบ Excel)
+  legendEl.innerHTML = data.filter(d => trendVisible[d.site]).map((d) => {
+    const idx = data.indexOf(d);
+    return `<div class="trend-legend-item">
+      <span class="tl-swatch" style="background:var(--trend-${idx+1});"></span>
+      <span class="tl-name">${d.p}</span>
+      <span class="tl-val">${trendData[d.site][n-1].toLocaleString()} ฉบับ</span>
+    </div>`;
+  }).join('');
+
+  const total = data.length, visN = visibleSites.length;
+  const countEl = document.getElementById('xlfilterCount');
+  if(countEl) countEl.textContent = visN === total ? '' : `(${visN}/${total})`;
+}
+
+// ===== เมนูตัวกรองโครงการ แบบ Excel AutoFilter: ค้นหา + checkbox list + ตกลง/ยกเลิก =====
+function toggleTrendFilterMenu(){
+  const menu = document.getElementById('xlfilterMenu');
+  if(menu.style.display === 'none'){
+    trendFilterDraft = {};
+    data.forEach(d => { trendFilterDraft[d.site] = trendVisible[d.site]; });
+    document.getElementById('xlfilterSearch').value = '';
+    renderTrendFilterList();
+    menu.style.display = 'flex';
+    document.addEventListener('mousedown', trendFilterOutsideClick, true);
+  } else {
+    cancelTrendFilterMenu();
+  }
+}
+function trendFilterOutsideClick(evt){
+  const box = document.querySelector('.xlfilter');
+  if(box && !box.contains(evt.target)) cancelTrendFilterMenu();
+}
+function closeTrendFilterMenuEl(){
+  document.getElementById('xlfilterMenu').style.display = 'none';
+  document.removeEventListener('mousedown', trendFilterOutsideClick, true);
+}
+function cancelTrendFilterMenu(){
+  trendFilterDraft = null;
+  closeTrendFilterMenuEl();
+}
+function applyTrendFilterMenu(){
+  if(trendFilterDraft) data.forEach(d => { trendVisible[d.site] = !!trendFilterDraft[d.site]; });
+  trendFilterDraft = null;
+  closeTrendFilterMenuEl();
+  renderTrendChart();
+}
+function renderTrendFilterList(){
+  const listEl = document.getElementById('xlfilterList');
+  const q = document.getElementById('xlfilterSearch').value.trim().toLowerCase();
+  const rows = data.filter(d => d.p.toLowerCase().includes(q) || d.site.toLowerCase().includes(q));
+  const allOn = rows.length > 0 && rows.every(d => trendFilterDraft[d.site]);
+  let html = `<label class="xlfilter-item xlfilter-all"><input type="checkbox" ${allOn?'checked':''} onchange="toggleTrendDraftAll(this.checked)"/>(เลือกทั้งหมด)</label>`;
+  html += rows.map((d) => {
+    const idx = data.indexOf(d);
+    const on = !!trendFilterDraft[d.site];
+    return `<label class="xlfilter-item"><input type="checkbox" ${on?'checked':''} onchange="toggleTrendDraftOne('${d.site}', this.checked)"/><span class="xl-swatch" style="background:var(--trend-${idx+1});"></span>${d.p} (${d.site})</label>`;
+  }).join('');
+  listEl.innerHTML = html;
+}
+function toggleTrendDraftAll(v){
+  const q = document.getElementById('xlfilterSearch').value.trim().toLowerCase();
+  data.filter(d => d.p.toLowerCase().includes(q) || d.site.toLowerCase().includes(q))
+    .forEach(d => { trendFilterDraft[d.site] = v; });
+  renderTrendFilterList();
+}
+function toggleTrendDraftOne(site, v){
+  trendFilterDraft[site] = v;
+  renderTrendFilterList();
+}
+
+function ensureTrendTooltip(){
+  let tt = document.getElementById('trendTooltip');
+  if(!tt){
+    tt = document.createElement('div');
+    tt.id = 'trendTooltip';
+    tt.className = 'trend-tooltip';
+    tt.style.display = 'none';
+    document.getElementById('trendChartWrap').style.position = 'relative';
+    document.getElementById('trendChartWrap').appendChild(tt);
+  }
+  return tt;
+}
+
+renderKpiRow();
+applyFilters();
+</script>
+
+</body></html>
